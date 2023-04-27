@@ -1,13 +1,18 @@
-name: 'Wait'
-description: 'Wait a designated number of milliseconds'
+name: 'PR-comment'
+description: 'Kreira komentar na PR'
 inputs:
-  milliseconds:  # id of input
-    description: 'number of milliseconds to wait'
+  owner:
+    description: 'Vlasnik repozitorija'
     required: true
-    default: '1000'
-outputs:
-  time: # output will be available to future steps
-    description: 'The current time after waiting'
+  repo:
+    description: 'Puno ime repozitorija'
+    required: true
+  pr_number:
+    description: 'Broj PR'
+    required: true
+  tokens:
+    description: 'GH token za autorizaciju GH API'
+    required: true
 runs:
   using: 'node16'
   main: 'dist/index.js'
