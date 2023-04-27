@@ -1,117 +1,72 @@
 const core = require('@actions/core');
 const github = require('@actions/github');
 
-
-// most @actions toolkit packages have async methods
 async function run() {
   try {
+    const owner = core.getInput('owner', { required: true });
+    const repo = core.getInput('repo', { required: true });
+    const pr_number = core.getInput('pr_number', { required: true });
+    const token = core.getInput('token', { required: true });
 
-    const owner=core.getInput('owner',{required:true});
-    const repo=core.getInput('repo',{required:true});
-    const token=core.getInput('token',{required:true});
-    const pr_number=core.getInput('pr_number',{required:true});
+    const octokit = new github.getOctokit(token);
 
-    const octokit =new github.getOctokit(token); 
-
-    const {data:changedFiles} = await octokit.rest.pulls.listFiles({  
-      owner,      
+    const { data: changedFiles } = await octokit.rest.pulls.listFiles({
+      owner,
       repo,
-      pull_number:pr_number,      
-    });     
+      pull_number: pr_number,
+    });
 
-    let diffData   = {
-      additions: 0,
+    let diffData = {
+      addition: 0,
       deletions: 0,
       changes: 0
     };
 
+    diffData = changedFiles.reduce((acc, file) => {
+      acc.additions += file.additions;
+      acc.deletions += file.deletions;
+      acc.changes += file.changes;
+      return acc;
+    }, diffData);
+
     await octokit.rest.issues.createComment({
       owner,
       repo,
-      issue_number:pr_number,
-      body:`
-      Pull request #${pr_number} has been updated with:\n
-      ## Changes
-      ${diffData.changes}\n
-      ## Additions
-      ${diffData.additions}\n      
-      ## Deletions
-      ${diffData.deletions}\n
+      issue_number: pr_number,
+      body: `
+        Pull request #${pr_number} has be updated with: \n
+        - ${diffData.changes} changes \n
+        - ${diffData.additions} additions \n
+        - ${diffData.deletions} deletions
       `
     });
 
-
-    diffData=changedFiles.reduce((acc,file)=>{
-      acc.additions=file.additions;
-      acc.deletions=file.deletions;
-      acc.changes=file.changes;
-      return acc;
-    },diffData);
-
     for (const file of changedFiles) {
-      const fileExtension = file.filename.split('.').pop();
-      let label='';
-      switch (fileExtension) {
-        case 'js':
-          label='JavaScript';
-          break;
-        case 'css':
-          label='CSS';
-          break;
-        case 'html':
-          label='HTML';
-          break;
-        case 'json':
-          label='JSON';
-          break;
+      const fileExtention = file.filename.split('.').pop();
+      let label = '';
+      switch(fileExtention) {
         case 'md':
-          label='Markdown';
+          label = 'markdown';
+          break;
+        case 'js':
+          label = 'javascript';
           break;
         case 'yml':
-          label='YAML';
+          label = 'yaml';
           break;
-        case 'xml':
-          label='XML';
-          break;
-        case 'sh':
-          label='Shell Script';
-          break;
-        case 'py':
-          label='Python';
-          break;
-        case 'java':
-          label='Java';
-          break;
-        case 'kt':
-          label='Kotlin';
-          break;
-        case 'go':
-          label='Go';
-          break;
-        case 'rb':
-          label='Ruby';
-          break;
-        case 'php':
-          label='PHP';
-          break;
-        case 'cpp':
-          label='C++';
-          break;
-        case 'cs':
-          label='C#';
+        case 'yaml':
+          label = 'yaml';
           break;
         default:
-          label='Unknown';
+          label = 'noextension';
       }
-
-      await octokit.rest.issues.addLabel({
+      await octokit.rest.issues.addLabels({
         owner,
-        repo,        
-        issue_number:pr_number,
-        labels:[label]
+        repo,
+        issue_number: pr_number,
+        labels: [label]
       });
     }
-
   } catch (error) {
     core.setFailed(error.message);
   }
