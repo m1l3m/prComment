@@ -45,20 +45,43 @@ async function run() {
       const fileExtention = file.filename.split('.').pop();
       let label = '';
       switch(fileExtention) {
-        case 'md':
-          label = 'markdown';
-          break;
         case 'js':
-          label = 'javascript';
+          label = 'JavaScript';
+          break;          
+        case 'ts':
+          label = 'TypeScript';
+          break;      
+        case 'css':
+          label = 'CSS';
+          break;
+          case 'scss':
+            label = 'SCSS';
+            break;
+            
+        case 'html':
+          label = 'HTML';
+          break;          
+        case 'json':
+          label = 'JSON';
+          break;        
+        case 'md':
+          label = 'Markdown';
           break;
         case 'yml':
-          label = 'yaml';
+          label = 'YAML';
+          break;
+        case 'xml':
+          label = 'XML';
+          break;
+        case 'sh':
+          label = 'Shell';
           break;
         case 'yaml':
           label = 'yaml';
           break;
         default:
-          label = 'noextension';
+          label = 'unknown';        
+
       }
       await octokit.rest.issues.addLabels({
         owner,
